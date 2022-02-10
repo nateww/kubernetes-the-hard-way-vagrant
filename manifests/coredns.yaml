@@ -63,6 +63,9 @@ data:
         errors
         health
         ready
+        log . {
+            class error
+        }
         kubernetes cluster.local in-addr.arpa ip6.arpa {
           pods insecure
           fallthrough in-addr.arpa ip6.arpa
@@ -83,11 +86,11 @@ metadata:
     k8s-app: kube-dns
     kubernetes.io/name: "CoreDNS"
 spec:
-  replicas: 2
+  replicas: 1
   strategy:
     type: RollingUpdate
     rollingUpdate:
-      maxUnavailable: 1
+      maxUnavailable: 0
   selector:
     matchLabels:
       k8s-app: kube-dns
@@ -98,11 +101,6 @@ spec:
     spec:
       priorityClassName: system-cluster-critical
       serviceAccountName: coredns
-      tolerations:
-        - key: "CriticalAddonsOnly"
-          operator: "Exists"
-      nodeSelector:
-        beta.kubernetes.io/os: linux
       containers:
       - name: coredns
         image: coredns/coredns:1.8.3
@@ -181,7 +179,4 @@ spec:
     protocol: UDP
   - name: dns-tcp
     port: 53
-    protocol: TCP
-  - name: metrics
-    port: 9153
     protocol: TCP
