@@ -27,6 +27,13 @@ rules:
   - nodes
   verbs:
   - get
+- apiGroups:
+  - discovery.k8s.io
+  resources:
+  - endpointslices
+  verbs:
+  - list
+  - watch
 ---
 apiVersion: rbac.authorization.k8s.io/v1
 kind: ClusterRoleBinding
@@ -54,19 +61,13 @@ data:
   Corefile: |
     .:53 {
         errors
-        health {
-          lameduck 5s
-        }
+        health
         ready
-        log . {
-            class error
-        }
         kubernetes cluster.local in-addr.arpa ip6.arpa {
-            pods insecure
-            fallthrough in-addr.arpa ip6.arpa
+          pods insecure
+          fallthrough in-addr.arpa ip6.arpa
         }
         prometheus :9153
-        forward . /etc/resolv.conf
         cache 30
         loop
         reload
@@ -79,29 +80,33 @@ metadata:
   name: coredns
   namespace: kube-system
   labels:
-    k8s-app: coredns
+    k8s-app: kube-dns
     kubernetes.io/name: "CoreDNS"
 spec:
-  replicas: 1
+  replicas: 2
   strategy:
     type: RollingUpdate
     rollingUpdate:
-      maxUnavailable: 0
+      maxUnavailable: 1
   selector:
     matchLabels:
-      tier: control-plane
-      k8s-app: coredns
+      k8s-app: kube-dns
   template:
     metadata:
       labels:
-        tier: control-plane
-        k8s-app: coredns
+        k8s-app: kube-dns
     spec:
       priorityClassName: system-cluster-critical
       serviceAccountName: coredns
+      tolerations:
+        - key: "CriticalAddonsOnly"
+          operator: "Exists"
+      nodeSelector:
+        beta.kubernetes.io/os: linux
       containers:
       - name: coredns
-        image: coredns/coredns:1.8.0
+        image: coredns/coredns:1.8.3
+        imagePullPolicy: IfNotPresent
         resources:
           limits:
             memory: 170Mi
@@ -110,7 +115,7 @@ spec:
             memory: 70Mi
         args: [ "-conf", "/etc/coredns/Corefile" ]
         volumeMounts:
-        - name: config
+        - name: config-volume
           mountPath: /etc/coredns
           readOnly: true
         ports:
@@ -147,7 +152,7 @@ spec:
             scheme: HTTP
       dnsPolicy: Default
       volumes:
-        - name: config
+        - name: config-volume
           configMap:
             name: coredns
             items:
@@ -157,17 +162,18 @@ spec:
 apiVersion: v1
 kind: Service
 metadata:
-  name: coredns
+  name: kube-dns
   namespace: kube-system
   annotations:
     prometheus.io/port: "9153"
     prometheus.io/scrape: "true"
   labels:
-    k8s-app: coredns
+    k8s-app: kube-dns
+    kubernetes.io/cluster-service: "true"
     kubernetes.io/name: "CoreDNS"
 spec:
   selector:
-    k8s-app: coredns
+    k8s-app: kube-dns
   clusterIP: 10.32.0.10
   ports:
   - name: dns
@@ -175,4 +181,7 @@ spec:
     protocol: UDP
   - name: dns-tcp
     port: 53
+    protocol: TCP
+  - name: metrics
+    port: 9153
     protocol: TCP
