@@ -3,10 +3,13 @@
 
 Vagrant.configure("2") do |config|
   config.vm.box = "ubuntu/focal64"
+  config.vm.provider "virtualbox"
+  config.ssh.insert_key = false
 
-  config.vm.provider "virtualbox" do |vb|
+  config.vm.provider :virtualbox do |vb|
     vb.memory = "1024"
     vb.customize ["modifyvm", :id, "--audio", "none"]
+    vb.linked_clone = true
   end
 
   # must be at the top
@@ -15,9 +18,6 @@ Vagrant.configure("2") do |config|
       c.vm.network "private_network", ip: "192.168.199.40"
 
       c.vm.provision :shell, :path => "scripts/vagrant-setup-haproxy.bash"
-
-      c.vm.provider "virtualbox" do |vb|
-      end
   end
 
   (0..2).each do |n|
@@ -27,7 +27,7 @@ Vagrant.configure("2") do |config|
 
         c.vm.provision :shell, :path => "scripts/vagrant-setup-hosts-file.bash"
 
-        c.vm.provider "virtualbox" do |vb|
+        c.vm.provider :virtualbox do |vb|
           vb.memory = "750"
         end
     end
