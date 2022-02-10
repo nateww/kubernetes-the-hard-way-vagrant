@@ -33,10 +33,10 @@ cp \
   "/vagrant/config/$(hostname)-kube-apiserver.service" \
   /etc/systemd/system/kube-apiserver.service
 cp \
-  "/vagrant/config/$(hostname)-kube-scheduler.service" \
+  "/vagrant/config/kube-scheduler.service" \
   /etc/systemd/system/kube-scheduler.service
 cp \
-  "/vagrant/config/$(hostname)-kube-controller-manager.service" \
+  "/vagrant/config/kube-controller-manager.service" \
   /etc/systemd/system/kube-controller-manager.service
 
 systemctl daemon-reload
