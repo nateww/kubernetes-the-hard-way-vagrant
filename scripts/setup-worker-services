@@ -29,7 +29,7 @@ cp /vagrant/tools/{kube-proxy,kubelet,kubectl} /usr/local/bin/
 cp "/vagrant/config/$(hostname)-10-bridge.conf" /etc/cni/net.d/10-bridge.conf
 
 # Create a registries configuration, so that container images can be pulled successfully.
-cp /vagrant/config/registries.conf /etc/containers/
+cp /vagrant/static-config/registries.conf /etc/containers/
 cp /vagrant/config/kube-proxy.kubeconfig /var/lib/kube-proxy/kubeconfig
 
 cp /vagrant/certificates/ca.pem /var/lib/kubernetes/
