@@ -24,4 +24,4 @@ vagrant up --parallel
 ./scripts/setup-worker-services
 echo -e "\033[1mFinished. Cluster should be healthy and soon in state ready:\033[0m"
 kubectl get nodes
-kubectl apply -f manifests/coredns.yaml
+kubectl apply -f https://storage.googleapis.com/kubernetes-the-hard-way/coredns-1.8.yaml
